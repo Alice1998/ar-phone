@@ -34,37 +34,5 @@
         android:text="相册"
         android:textSize="18sp" />
 
-    <android.support.v7.widget.LinearLayoutCompat
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:gravity="bottom">
-
-
-        <Button
-            android:id="@+id/Btn1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Mode 1" />
-
-        <Button
-            android:id="@+id/Btn2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Mode 2" />
-
-        <Button
-            android:id="@+id/Btn3"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Mode 3" />
-
-        <Button
-            android:id="@+id/Btn4"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Mode 4" />
-
-    </android.support.v7.widget.LinearLayoutCompat>
 
 </LinearLayout>

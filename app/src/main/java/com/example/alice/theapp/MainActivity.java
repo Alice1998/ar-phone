@@ -30,26 +30,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     private Uri imageUri;
     private Uri cropImageUri;
 
-    int timer1=0,timer2=0,timer3=0,timer4=0;
-
-    // for flexible toast show time
-    public void showMyToast(final Toast toast, final int cnt) {
-        final Timer timer =new Timer();
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                toast.show();
-            }
-        },0,3000);
-        new Timer().schedule(new TimerTask() {
-            @Override
-            public void run() {
-                toast.cancel();
-                timer.cancel();
-            }
-        }, cnt );
-    }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -61,58 +41,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         btnTakePhoto.setOnClickListener(this);
         btnTakeGallery.setOnClickListener(this);
 
-        Button btn1=(Button)findViewById(R.id.Btn1);
-        Button btn2=(Button)findViewById(R.id.Btn2);
-        Button btn3=(Button)findViewById(R.id.Btn3);
-        Button btn4=(Button)findViewById(R.id.Btn4);
-
-        btn1.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //弹出Toast提示按钮被点击了
-                timer1=1^timer1;
-                if(timer1==1)
-                {
-                    Toast toast=Toast.makeText(MainActivity.this,"Mode 1 on",Toast.LENGTH_LONG);
-                    showMyToast(toast,500);
-                }
-                else
-                    showMyToast(Toast.makeText(MainActivity.this,"Mode 1 off",Toast.LENGTH_LONG),500);
-            }
-        });
-
-        btn2.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                timer2=1^timer2;
-                if(timer2==1)
-                    showMyToast(Toast.makeText(MainActivity.this,"Mode 2 on",Toast.LENGTH_LONG),500);
-                else
-                    showMyToast(Toast.makeText(MainActivity.this,"Mode 2 off",Toast.LENGTH_LONG),500);
-            }
-        });
-
-        btn3.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                timer3=1^timer3;
-                if(timer3==1)
-                    showMyToast(Toast.makeText(MainActivity.this,"Mode 3 on",Toast.LENGTH_LONG),500);
-                else
-                    showMyToast(Toast.makeText(MainActivity.this,"Mode 3 off",Toast.LENGTH_LONG),500);
-            }
-        });
-
-        btn4.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                timer4=1^timer4;
-                if(timer4==1)
-                    showMyToast(Toast.makeText(MainActivity.this,"Mode 4 on",Toast.LENGTH_LONG),500);
-                else
-                    showMyToast(Toast.makeText(MainActivity.this,"Mode 4 off",Toast.LENGTH_LONG),500);
-            }
-        });
 
     }
 
@@ -158,6 +86,13 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         }
     }
 
+    public void skip(String input){
+        Intent intent = new Intent();
+        intent.putExtra("uri",input);
+        intent.setClass(MainActivity.this,FullScreenActivity.class);
+        startActivity(intent);
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -167,6 +102,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                 case CODE_CAMERA_REQUEST://拍照完成回调
                     cropImageUri = Uri.fromFile(fileCropUri);
                     PhotoUtils.cropImageUri(this, imageUri, cropImageUri, 1, 1, output_X, output_Y, CODE_RESULT_REQUEST);
+                    skip(imageUri.toString());
+
                     break;
                 case CODE_GALLERY_REQUEST://访问相册完成回调
                     if (hasSdcard()) {
@@ -175,6 +112,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
                             newUri = FileProvider.getUriForFile(this, "com.example.alice.theapp.fileprovider", new File(newUri.getPath()));
                         PhotoUtils.cropImageUri(this, newUri, cropImageUri, 1, 1, output_X, output_Y, CODE_RESULT_REQUEST);
+                        skip(newUri.toString());
+
                     } else {
                         Toast.makeText(MainActivity.this, "设备没有SD卡!", Toast.LENGTH_SHORT).show();
                     }
