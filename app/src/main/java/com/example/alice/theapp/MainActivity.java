@@ -40,7 +40,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
             Intent intent = new Intent();
             // to be done
             intent.putExtra("mode",1);
-            intent.setClass(MainActivity.this,FullScreenActivity.class);
+            intent.setClass(MainActivity.this,TCPclient.class);
             startActivity(intent);
         }
     };

@@ -4,6 +4,8 @@
 
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:allowBackup="true"
@@ -22,7 +24,7 @@
         </activity>
         <activity android:name=".FullScreenActivity"></activity>
         <activity android:name=".ShopListActivity"></activity>
-
+        <activity android:name=".TCPclient"></activity>
 
         <provider
             android:name="android.support.v4.content.FileProvider"

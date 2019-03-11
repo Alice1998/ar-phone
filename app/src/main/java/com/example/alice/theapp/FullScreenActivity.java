@@ -20,6 +20,11 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.InetAddress;
+import java.net.Socket;
+
 public class FullScreenActivity extends AppCompatActivity {
 
     int timer1=0,timer2=0,timer3=0,timer4=0;
@@ -29,6 +34,10 @@ public class FullScreenActivity extends AppCompatActivity {
     //ImageView pic;
     DragScaleView pic;
 
+    Socket Socket = null;//Socket
+    OutputStream OutputStream = null;//定义数据输出流，用于发送数据
+    InputStream InputStream = null;//定义数据输入流，用于接收数据
+    boolean RD = false;//用于控制读数据线程是否执行
 
     // for flexible toast show time
     public void showMyToast(final Toast toast, final int cnt) {
@@ -47,6 +56,7 @@ public class FullScreenActivity extends AppCompatActivity {
             }
         }, cnt );
     }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
