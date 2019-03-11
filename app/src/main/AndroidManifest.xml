@@ -21,6 +21,8 @@
             </intent-filter>
         </activity>
         <activity android:name=".FullScreenActivity"></activity>
+        <activity android:name=".ShopListActivity"></activity>
+
 
         <provider
             android:name="android.support.v4.content.FileProvider"

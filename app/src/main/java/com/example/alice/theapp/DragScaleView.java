@@ -8,6 +8,7 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Toast;
 
 public class DragScaleView extends android.support.v7.widget.AppCompatImageView implements View.OnTouchListener {
     protected int screenWidth;
@@ -145,6 +146,7 @@ public class DragScaleView extends android.support.v7.widget.AppCompatImageView 
                         top(v, dy);
                         break;
                     case TOUCH_TWO: //双指操控
+
                         float newDist =distance(event);
                         float scale = newDist / oriDis;
                         //控制双指缩放的敏感度

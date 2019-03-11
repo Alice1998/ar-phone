@@ -123,6 +123,9 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                 alertdialog1.show();
                 break;
             case R.id.shop:
+                Intent intent = new Intent();
+                intent.setClass(MainActivity.this,ShopListActivity.class);
+                startActivity(intent);
                 break;
         }
     }
