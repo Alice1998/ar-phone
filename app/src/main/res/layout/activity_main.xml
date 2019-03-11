@@ -34,5 +34,25 @@
         android:text="相册"
         android:textSize="18sp" />
 
+    <Button
+        android:id="@+id/read"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:text="阅读"
+        android:textSize="18sp" />
+
+    <Button
+        android:id="@+id/shop"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:text="购物"
+        android:textSize="18sp" />
+
 
 </LinearLayout>

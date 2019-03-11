@@ -72,7 +72,7 @@ public class DragScaleView extends android.support.v7.widget.AppCompatImageView 
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
-        setBackgroundResource(R.drawable.bg_dashgap);
+        //setBackgroundResource(R.drawable.bg_dashgap);
         int action = event.getAction()& MotionEvent.ACTION_MASK;
         if (action == MotionEvent.ACTION_DOWN) {
             oriLeft = v.getLeft();

@@ -2,6 +2,8 @@ package com.example.alice.theapp;
 
 
 import android.Manifest;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -29,6 +31,29 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     private File fileCropUri = new File(Environment.getExternalStorageDirectory().getPath() + "/crop_photo.jpg");
     private Uri imageUri;
     private Uri cropImageUri;
+    private DialogInterface.OnClickListener click1=new DialogInterface.OnClickListener()
+    {
+        @Override
+        public void onClick(DialogInterface arg0, int arg1)
+        {
+            Toast.makeText(MainActivity.this, "open picture mode", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent();
+            // to be done
+            intent.putExtra("mode",1);
+            intent.setClass(MainActivity.this,FullScreenActivity.class);
+            startActivity(intent);
+        }
+    };
+    private DialogInterface.OnClickListener click2=new DialogInterface.OnClickListener()
+    {
+        @Override
+        public void onClick(DialogInterface arg0,int arg1)
+        {
+            // 阅读器
+            Toast.makeText(MainActivity.this, "open reading mode", Toast.LENGTH_SHORT).show();
+            //arg0.cancel();
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,16 +62,22 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 
         Button btnTakePhoto = (Button) findViewById(R.id.take_photo);
         Button btnTakeGallery = (Button) findViewById(R.id.take_gallery);
+
+        Button btnRead=(Button) findViewById(R.id.read);
+        Button btnShop=(Button) findViewById(R.id.shop);
+
         photo = (ImageView) findViewById(R.id.photo);
         btnTakePhoto.setOnClickListener(this);
         btnTakeGallery.setOnClickListener(this);
-
+        btnRead.setOnClickListener(this);
+        btnShop.setOnClickListener(this);
 
     }
 
 
     @Override
     public void onClick(View v) {
+
         switch (v.getId()) {
             case R.id.take_photo:
                 requestPermissions(this, new String[]{Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE}, new RequestPermissionCallBack() {
@@ -83,6 +114,16 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                     }
                 });
                 break;
+            case R.id.read:
+                AlertDialog.Builder alertdialogbuilder=new AlertDialog.Builder(this);
+                alertdialogbuilder.setMessage("请选择模式");
+                alertdialogbuilder.setPositiveButton("图片", click1);
+                alertdialogbuilder.setNegativeButton("阅读器", click2);
+                AlertDialog alertdialog1=alertdialogbuilder.create();
+                alertdialog1.show();
+                break;
+            case R.id.shop:
+                break;
         }
     }
 
@@ -101,7 +142,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
             switch (requestCode) {
                 case CODE_CAMERA_REQUEST://拍照完成回调
                     cropImageUri = Uri.fromFile(fileCropUri);
-                    PhotoUtils.cropImageUri(this, imageUri, cropImageUri, 1, 1, output_X, output_Y, CODE_RESULT_REQUEST);
+                    //PhotoUtils.cropImageUri(this, imageUri, cropImageUri, 1, 1, output_X, output_Y, CODE_RESULT_REQUEST);
                     skip(imageUri.toString());
 
                     break;
@@ -111,7 +152,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                         Uri newUri = Uri.parse(PhotoUtils.getPath(this, data.getData()));
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
                             newUri = FileProvider.getUriForFile(this, "com.example.alice.theapp.fileprovider", new File(newUri.getPath()));
-                        PhotoUtils.cropImageUri(this, newUri, cropImageUri, 1, 1, output_X, output_Y, CODE_RESULT_REQUEST);
+                        //PhotoUtils.cropImageUri(this, newUri, cropImageUri, 1, 1, output_X, output_Y, CODE_RESULT_REQUEST);
                         skip(newUri.toString());
 
                     } else {

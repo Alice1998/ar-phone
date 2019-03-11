@@ -26,7 +26,8 @@ public class FullScreenActivity extends AppCompatActivity {
     Bitmap bitmap;
     DisplayMetrics dm2;
     float scaleMode1;
-    ImageView pic;
+    //ImageView pic;
+    DragScaleView pic;
 
 
     // for flexible toast show time
@@ -51,7 +52,7 @@ public class FullScreenActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.full_screen);
-        pic = (ImageView)findViewById(R.id.image);
+        pic = (DragScaleView)findViewById(R.id.image);
 
         Button btn1=(Button)findViewById(R.id.Btn1);
         Button btn2=(Button)findViewById(R.id.Btn2);
