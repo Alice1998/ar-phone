@@ -15,6 +15,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import java.io.ByteArrayOutputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Timer;
@@ -34,10 +35,7 @@ public class FullScreenActivity extends AppCompatActivity {
     //ImageView pic;
     DragScaleView pic;
 
-    Socket Socket = null;//Socket
-    OutputStream OutputStream = null;//定义数据输出流，用于发送数据
-    InputStream InputStream = null;//定义数据输入流，用于接收数据
-    boolean RD = false;//用于控制读数据线程是否执行
+    ClientOnly sendBySocket;
 
     // for flexible toast show time
     public void showMyToast(final Toast toast, final int cnt) {
@@ -74,6 +72,14 @@ public class FullScreenActivity extends AppCompatActivity {
         Uri uri = Uri.parse((String) data);
         bitmap = PhotoUtils.getBitmapFromUri(uri,this);
         pic.setImageBitmap(bitmap);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);
+
+
+        sendBySocket=new ClientOnly("192.168.1.49",2000);
+        sendBySocket.picinfo = baos.toByteArray();
+        sendBySocket.play();
+
 
         dm2 = getResources().getDisplayMetrics();
         System.out.println("width-display :" + dm2.widthPixels);

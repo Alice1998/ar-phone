@@ -12,15 +12,18 @@ public class ClientOnly {
 
 	String iptoedit;
 	int porttoedit;
-	public String edittotext;
-	public String datatoedit;
+	public String edittotext; // receive
+	public String datatoedit; // to be sent
+    public byte[] picinfo;
 
 	OutputStream OutputStream = null;//定义数据输出流，用于发送数据
     InputStream InputStream = null;//定义数据输入流，用于接收数据
 
-    ClientOnly()
+    public ClientOnly(String ip,int port)
     {
-
+        iptoedit=ip;
+        porttoedit=port;
+        link();
     }
 
     public void play()
@@ -137,7 +140,8 @@ public class ClientOnly {
 
             
         }
-    }//用线程发送数据
+    }
+    //用线程发送数据
     class ThreadSendData extends Thread{
         public void run(){
             try {
@@ -151,7 +155,5 @@ public class ClientOnly {
             }
         }
     }
-
-
 
 }
