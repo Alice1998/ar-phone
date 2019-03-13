@@ -27,31 +27,36 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     private static final int CODE_GALLERY_REQUEST = 0xa0;
     private static final int CODE_CAMERA_REQUEST = 0xa1;
     private static final int CODE_RESULT_REQUEST = 0xa2;
+    private static final int CODE_IP_SETTINGS=0xa3;
+    private String ip;
+    private String port;
     private File fileUri = new File(Environment.getExternalStorageDirectory().getPath() + "/photo.jpg");
     private File fileCropUri = new File(Environment.getExternalStorageDirectory().getPath() + "/crop_photo.jpg");
     private Uri imageUri;
     private Uri cropImageUri;
-    private DialogInterface.OnClickListener click1=new DialogInterface.OnClickListener()
-    {
+    private DialogInterface.OnClickListener click1 = new DialogInterface.OnClickListener() {
         @Override
-        public void onClick(DialogInterface arg0, int arg1)
-        {
+        public void onClick(DialogInterface arg0, int arg1) {
             Toast.makeText(MainActivity.this, "open picture mode", Toast.LENGTH_SHORT).show();
-            Intent intent = new Intent();
-            // to be done
-            intent.putExtra("mode",1);
-            intent.setClass(MainActivity.this,TCPclient.class);
-            startActivity(intent);
+            requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, new RequestPermissionCallBack() {
+                @Override
+                public void granted() {
+                    PhotoUtils.openPic(MainActivity.this, CODE_GALLERY_REQUEST);
+                }
+
+                @Override
+                public void denied() {
+                    Toast.makeText(MainActivity.this, "部分权限获取失败，正常功能受到影响", Toast.LENGTH_LONG).show();
+                }
+            });
         }
     };
-    private DialogInterface.OnClickListener click2=new DialogInterface.OnClickListener()
-    {
+    private DialogInterface.OnClickListener click2 = new DialogInterface.OnClickListener() {
         @Override
-        public void onClick(DialogInterface arg0,int arg1)
-        {
+        public void onClick(DialogInterface arg0, int arg1) {
             // 阅读器
             Toast.makeText(MainActivity.this, "open reading mode", Toast.LENGTH_SHORT).show();
-            //arg0.cancel();
+
         }
     };
 
@@ -63,14 +68,16 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         Button btnTakePhoto = (Button) findViewById(R.id.take_photo);
         Button btnTakeGallery = (Button) findViewById(R.id.take_gallery);
 
-        Button btnRead=(Button) findViewById(R.id.read);
-        Button btnShop=(Button) findViewById(R.id.shop);
+        Button btnRead = (Button) findViewById(R.id.read);
+        Button btnShop = (Button) findViewById(R.id.shop);
+        Button btnIP = (Button) findViewById(R.id.forIP);
 
         photo = (ImageView) findViewById(R.id.photo);
         btnTakePhoto.setOnClickListener(this);
         btnTakeGallery.setOnClickListener(this);
         btnRead.setOnClickListener(this);
         btnShop.setOnClickListener(this);
+        btnIP.setOnClickListener(this);
 
     }
 
@@ -78,6 +85,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     @Override
     public void onClick(View v) {
 
+        Intent intent = new Intent();
         switch (v.getId()) {
             case R.id.take_photo:
                 requestPermissions(this, new String[]{Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE}, new RequestPermissionCallBack() {
@@ -115,25 +123,32 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                 });
                 break;
             case R.id.read:
-                AlertDialog.Builder alertdialogbuilder=new AlertDialog.Builder(this);
+                AlertDialog.Builder alertdialogbuilder = new AlertDialog.Builder(this);
                 alertdialogbuilder.setMessage("请选择模式");
                 alertdialogbuilder.setPositiveButton("图片", click1);
                 alertdialogbuilder.setNegativeButton("阅读器", click2);
-                AlertDialog alertdialog1=alertdialogbuilder.create();
+                AlertDialog alertdialog1 = alertdialogbuilder.create();
                 alertdialog1.show();
                 break;
             case R.id.shop:
-                Intent intent = new Intent();
-                intent.setClass(MainActivity.this,ShopListActivity.class);
+                intent.setClass(MainActivity.this, ShopListActivity.class);
                 startActivity(intent);
+                break;
+            case R.id.forIP:
+                // to be done
+                intent.putExtra("mode", 1);
+                intent.setClass(MainActivity.this, TCPclient.class);
+                startActivityForResult(intent, CODE_IP_SETTINGS);
                 break;
         }
     }
 
-    public void skip(String input){
+    public void skip(String input) {
         Intent intent = new Intent();
-        intent.putExtra("uri",input);
-        intent.setClass(MainActivity.this,FullScreenActivity.class);
+        intent.putExtra("uri", input);
+        intent.putExtra("ip",ip);
+        intent.putExtra("port",port);
+        intent.setClass(MainActivity.this, FullScreenActivity.class);
         startActivity(intent);
     }
 
@@ -168,6 +183,12 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                         showImages(bitmap);
                     }
                     break;
+                case CODE_IP_SETTINGS:
+                    ip=data.getStringExtra("ip");
+                    port=data.getStringExtra("port");
+                    Toast.makeText(MainActivity.this, ip, Toast.LENGTH_LONG).show();
+                    break;
+
             }
         }
     }
@@ -185,4 +206,5 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         String state = Environment.getExternalStorageState();
         return state.equals(Environment.MEDIA_MOUNTED);
     }
+
 }

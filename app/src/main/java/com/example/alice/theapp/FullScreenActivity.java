@@ -1,6 +1,8 @@
 package com.example.alice.theapp;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
@@ -9,6 +11,7 @@ import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -28,31 +31,50 @@ import java.net.Socket;
 
 public class FullScreenActivity extends AppCompatActivity {
 
-    int timer1=0,timer2=0,timer3=0,timer4=0;
+    int timer1 = 0, timer2 = 0, timer3 = 0, timer4 = 0;
     Bitmap bitmap;
     DisplayMetrics dm2;
     float scaleMode1;
     //ImageView pic;
     DragScaleView pic;
+    String ip;
+    String port;
 
     ClientOnly sendBySocket;
 
+    private DialogInterface.OnClickListener click1 = new DialogInterface.OnClickListener() {
+        @Override
+        public void onClick(DialogInterface arg0, int arg1) {
+            Toast.makeText(FullScreenActivity.this, "message sent", Toast.LENGTH_SHORT).show();
+            sendBySocket.picinfo = "close the window".getBytes();
+            sendBySocket.play();
+            finish();
+        }
+    };
+    private DialogInterface.OnClickListener click2 = new DialogInterface.OnClickListener() {
+        @Override
+        public void onClick(DialogInterface arg0, int arg1) {
+            // keep
+            finish();
+        }
+    };
+
     // for flexible toast show time
     public void showMyToast(final Toast toast, final int cnt) {
-        final Timer timer =new Timer();
+        final Timer timer = new Timer();
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
                 toast.show();
             }
-        },0,3000);
+        }, 0, 3000);
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
                 toast.cancel();
                 timer.cancel();
             }
-        }, cnt );
+        }, cnt);
     }
 
 
@@ -60,23 +82,28 @@ public class FullScreenActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.full_screen);
-        pic = (DragScaleView)findViewById(R.id.image);
+        pic = (DragScaleView) findViewById(R.id.image);
 
-        Button btn1=(Button)findViewById(R.id.Btn1);
-        Button btn2=(Button)findViewById(R.id.Btn2);
-        Button btn3=(Button)findViewById(R.id.Btn3);
-        Button btn4=(Button)findViewById(R.id.Btn4);
+        Button btn1 = (Button) findViewById(R.id.Btn1);
+        Button btn2 = (Button) findViewById(R.id.Btn2);
+        Button btn3 = (Button) findViewById(R.id.Btn3);
+        Button btn4 = (Button) findViewById(R.id.Btn4);
 
-        Intent intent=getIntent();
-        String data=intent.getStringExtra("uri");
+        Intent intent = getIntent();
+        String data = intent.getStringExtra("uri");
         Uri uri = Uri.parse((String) data);
-        bitmap = PhotoUtils.getBitmapFromUri(uri,this);
+
+        bitmap = PhotoUtils.getBitmapFromUri(uri, this);
         pic.setImageBitmap(bitmap);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);
 
-
-        sendBySocket=new ClientOnly("192.168.1.49",2000);
+        ip=intent.getStringExtra("ip");
+        intent.getStringExtra("port");
+        if(ip == null || ip.length() == 0 || port == null || port.length() == 0 )
+            sendBySocket = new ClientOnly("192.168.1.49", 2000);
+        else
+            sendBySocket=new ClientOnly(ip,Integer.valueOf(port));
 
         sendBySocket.picinfo = baos.toByteArray();
         sendBySocket.play();
@@ -93,17 +120,17 @@ public class FullScreenActivity extends AppCompatActivity {
         System.out.println("width-dm2 :" + dm2.widthPixels);
         System.out.println("heigth-dm2 :" + dm2.heightPixels);
 
-        scaleMode1=(float)1.5;
+        scaleMode1 = (float) 1.5;
         Matrix matrix = new Matrix();
-        matrix.postScale(scaleMode1,scaleMode1);
+        matrix.postScale(scaleMode1, scaleMode1);
 
-        int startx=(width-dm2.widthPixels>0)?width-dm2.widthPixels:0;
-        int starty=(height-dm2.heightPixels>0)?height-dm2.heightPixels:0;
-        int allwidth=dm2.widthPixels,allheight=dm2.heightPixels;
-        if(startx==0)
-            allwidth=width;
-        if(starty==0)
-            allheight=height;
+        int startx = (width - dm2.widthPixels > 0) ? width - dm2.widthPixels : 0;
+        int starty = (height - dm2.heightPixels > 0) ? height - dm2.heightPixels : 0;
+        int allwidth = dm2.widthPixels, allheight = dm2.heightPixels;
+        if (startx == 0)
+            allwidth = width;
+        if (starty == 0)
+            allheight = height;
 
         System.out.println("width :" + startx);
         System.out.println("heigth :" + starty);
@@ -122,18 +149,15 @@ public class FullScreenActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 //弹出Toast提示按钮被点击了
-                timer1=1^timer1;
-                if(timer1==1)
-                {
-                    Toast toast=Toast.makeText(FullScreenActivity.this,"Mode 1 on",Toast.LENGTH_LONG);
-                    showMyToast(toast,500);
+                timer1 = 1 ^ timer1;
+                if (timer1 == 1) {
+                    Toast toast = Toast.makeText(FullScreenActivity.this, "Mode 1 on", Toast.LENGTH_LONG);
+                    showMyToast(toast, 500);
                     pic.setImageBitmap(newbm1);
                     sendBySocket.picinfo = "1 on".getBytes();
                     sendBySocket.play();
-                }
-                else
-                {
-                    showMyToast(Toast.makeText(FullScreenActivity.this,"Mode 1 off",Toast.LENGTH_LONG),500);
+                } else {
+                    showMyToast(Toast.makeText(FullScreenActivity.this, "Mode 1 off", Toast.LENGTH_LONG), 500);
                     pic.setImageBitmap(bitmap);
                     sendBySocket.picinfo = "1 off".getBytes();
                     sendBySocket.play();
@@ -144,17 +168,13 @@ public class FullScreenActivity extends AppCompatActivity {
         btn2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                timer2=1^timer2;
-                if(timer2==1)
-                {
-                    showMyToast(Toast.makeText(FullScreenActivity.this,"Mode 2 on",Toast.LENGTH_LONG),500);
+                timer2 = 1 ^ timer2;
+                if (timer2 == 1) {
+                    showMyToast(Toast.makeText(FullScreenActivity.this, "Mode 2 on", Toast.LENGTH_LONG), 500);
                     sendBySocket.picinfo = "2 on".getBytes();
                     sendBySocket.play();
-                }
-
-                else
-                {
-                    showMyToast(Toast.makeText(FullScreenActivity.this,"Mode 2 off",Toast.LENGTH_LONG),500);
+                } else {
+                    showMyToast(Toast.makeText(FullScreenActivity.this, "Mode 2 off", Toast.LENGTH_LONG), 500);
                     sendBySocket.picinfo = "2 off".getBytes();
                     sendBySocket.play();
                 }
@@ -165,15 +185,12 @@ public class FullScreenActivity extends AppCompatActivity {
         btn3.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                timer3=1^timer3;
-                if(timer3==1)
-                {
+                timer3 = 1 ^ timer3;
+                if (timer3 == 1) {
                     showMyToast(Toast.makeText(FullScreenActivity.this, "Mode 3 on", Toast.LENGTH_LONG), 500);
                     sendBySocket.picinfo = "3 on".getBytes();
                     sendBySocket.play();
-                }
-                else
-                    {
+                } else {
                     showMyToast(Toast.makeText(FullScreenActivity.this, "Mode 3 off", Toast.LENGTH_LONG), 500);
                     sendBySocket.picinfo = "3 off".getBytes();
                     sendBySocket.play();
@@ -184,18 +201,35 @@ public class FullScreenActivity extends AppCompatActivity {
         btn4.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                timer4=1^timer4;
-                if(timer4==1) {
+                timer4 = 1 ^ timer4;
+                if (timer4 == 1) {
                     showMyToast(Toast.makeText(FullScreenActivity.this, "Mode 4 on", Toast.LENGTH_LONG), 500);
                     sendBySocket.picinfo = "4 on".getBytes();
                     sendBySocket.play();
-                }
-                else {
+                } else {
                     showMyToast(Toast.makeText(FullScreenActivity.this, "Mode 4 off", Toast.LENGTH_LONG), 500);
                     sendBySocket.picinfo = "4 off".getBytes();
                     sendBySocket.play();
                 }
             }
         });
+    }
+
+
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if ((keyCode == KeyEvent.KEYCODE_BACK)) {
+            //返回事件监听
+            AlertDialog.Builder alertdialogbuilder = new AlertDialog.Builder(this);
+            alertdialogbuilder.setMessage("是否要关闭AR中的窗口？");
+            alertdialogbuilder.setPositiveButton("关闭", click1);
+            alertdialogbuilder.setNegativeButton("保留", click2);
+            AlertDialog alertdialog1 = alertdialogbuilder.create();
+            alertdialog1.show();
+            return false;
+        } else {
+            return super.onKeyDown(keyCode, event);
+        }
     }
 }
