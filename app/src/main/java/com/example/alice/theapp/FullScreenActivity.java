@@ -12,6 +12,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -29,24 +30,49 @@ import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
 
-public class FullScreenActivity extends AppCompatActivity {
+public class FullScreenActivity extends AppCompatActivity implements View.OnTouchListener{
 
-    int timer1 = 0, timer2 = 0, timer3 = 0, timer4 = 0;
+    int timer1 = 0, timer2 = 0, timer3 = 0, timer4 = 0,timer5=0,timer6=0;
     Bitmap bitmap;
     DisplayMetrics dm2;
     float scaleMode1;
     //ImageView pic;
-    DragScaleView pic;
+    ImageView pic;
     String ip;
     String port;
 
     ClientOnly sendBySocket;
+    int mode;
+
+    private static final int TOP = 0x15;
+    private static final int LEFT = 0x16;
+    private static final int BOTTOM = 0x17;
+    private static final int RIGHT = 0x18;
+    private static final int LEFT_TOP = 0x11;
+    private static final int RIGHT_TOP = 0x12;
+    private static final int LEFT_BOTTOM = 0x13;
+    private static final int RIGHT_BOTTOM = 0x14;
+    private static final int TOUCH_TWO = 0x21;
+    private static final int CENTER = 0x19;
+
+    protected int screenWidth;
+    protected int screenHeight;
+    protected int lastX;
+    protected int lastY;
+    private int oriLeft;
+    private int oriRight;
+    private int oriTop;
+    private int oriBottom;
+    private int dragDirection;
+    private static final int touchDistance = 80; //触摸边界的有效距离
+    private float oriDis = 1f;
+
 
     private DialogInterface.OnClickListener click1 = new DialogInterface.OnClickListener() {
         @Override
         public void onClick(DialogInterface arg0, int arg1) {
             Toast.makeText(FullScreenActivity.this, "message sent", Toast.LENGTH_SHORT).show();
-            sendBySocket.picinfo = "close the window".getBytes();
+            sendBySocket.picinfo = "close".getBytes();
             sendBySocket.play();
             finish();
         }
@@ -55,6 +81,8 @@ public class FullScreenActivity extends AppCompatActivity {
         @Override
         public void onClick(DialogInterface arg0, int arg1) {
             // keep
+            sendBySocket.picinfo = "keep".getBytes();
+            sendBySocket.play();
             finish();
         }
     };
@@ -78,16 +106,28 @@ public class FullScreenActivity extends AppCompatActivity {
     }
 
 
+    public static byte[] byteMerger(byte[] byte_1, byte[] byte_2){
+        byte[] byte_3 = new byte[byte_1.length+byte_2.length];
+        System.arraycopy(byte_1, 0, byte_3, 0, byte_1.length);
+        System.arraycopy(byte_2, 0, byte_3, byte_1.length, byte_2.length);
+        return byte_3;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.full_screen);
-        pic = (DragScaleView) findViewById(R.id.image);
+        pic = (ImageView) findViewById(R.id.image);
+        pic.setOnTouchListener(this);
+        // ***
+        mode=0;
 
         Button btn1 = (Button) findViewById(R.id.Btn1);
         Button btn2 = (Button) findViewById(R.id.Btn2);
         Button btn3 = (Button) findViewById(R.id.Btn3);
         Button btn4 = (Button) findViewById(R.id.Btn4);
+        Button enlarge=(Button) findViewById(R.id.Btn5);
+        Button cursor=(Button) findViewById(R.id.Btn6);
 
         Intent intent = getIntent();
         String data = intent.getStringExtra("uri");
@@ -105,7 +145,7 @@ public class FullScreenActivity extends AppCompatActivity {
         else
             sendBySocket=new ClientOnly(ip,Integer.valueOf(port));
 
-        sendBySocket.picinfo = baos.toByteArray();
+        sendBySocket.picinfo = byteMerger("pic 1 ".getBytes(),baos.toByteArray());
         sendBySocket.play();
         Toast.makeText(FullScreenActivity.this, "picture sent~", Toast.LENGTH_SHORT).show();
 
@@ -140,11 +180,7 @@ public class FullScreenActivity extends AppCompatActivity {
 // 得到新的图片
 
         final Bitmap newbm1 = Bitmap.createBitmap(bitmap, startx, starty, allwidth, allheight);
-        /*
-        final Bitmap newbm2 = Bitmap.createBitmap(bitmap, width-dm2.widthPixels, height-dm2.heightPixels, dm2.widthPixels, dm2.heightPixels);
-        final Bitmap newbm3 = Bitmap.createBitmap(bitmap, width-dm2.widthPixels, height-dm2.heightPixels, dm2.widthPixels, dm2.heightPixels);
-        final Bitmap newbm4 = Bitmap.createBitmap(bitmap, width-dm2.widthPixels, height-dm2.heightPixels, dm2.widthPixels, dm2.heightPixels);
-*/
+
         btn1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -213,6 +249,32 @@ public class FullScreenActivity extends AppCompatActivity {
                 }
             }
         });
+
+        enlarge.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                timer5 = 1 ^ timer5;
+                if (timer5 == 1) {
+                    showMyToast(Toast.makeText(FullScreenActivity.this, "enlarge mode on", Toast.LENGTH_LONG), 500);
+                } else {
+                    showMyToast(Toast.makeText(FullScreenActivity.this, "enlarge off", Toast.LENGTH_LONG), 500);
+
+                }
+            }
+        });
+
+        cursor.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                timer6 = 1 ^ timer6;
+                if (timer6 == 1) {
+                    showMyToast(Toast.makeText(FullScreenActivity.this, "cursor on", Toast.LENGTH_LONG), 500);
+
+                } else {
+                    showMyToast(Toast.makeText(FullScreenActivity.this, "cursor off", Toast.LENGTH_LONG), 500);
+                }
+            }
+        });
     }
 
 
@@ -231,5 +293,155 @@ public class FullScreenActivity extends AppCompatActivity {
         } else {
             return super.onKeyDown(keyCode, event);
         }
+    }
+
+    @Override
+    public boolean onTouch(View v, MotionEvent event)
+    {
+        int action = event.getAction() & MotionEvent.ACTION_MASK;
+
+        System.out.println("*** "+event.getAction()+action);
+        if (action == MotionEvent.ACTION_DOWN)
+        {
+            oriLeft = v.getLeft();
+            oriRight = v.getRight();
+            oriTop = v.getTop();
+            oriBottom = v.getBottom();
+            lastY = (int) event.getRawY();
+            lastX = (int) event.getRawX();
+            dragDirection = getDirection(v, (int) event.getX(),
+                    (int) event.getY());
+            if(timer5==1)
+            {
+                String tosent="enlarge "+lastX+" "+lastY;
+                sendBySocket.picinfo = tosent.getBytes();
+                sendBySocket.play();
+            }
+            if(timer6==1)
+            {
+                String tosent="cursor "+lastX+" "+lastY;
+                sendBySocket.picinfo = tosent.getBytes();
+                sendBySocket.play();
+            }
+
+        }
+        if (action == MotionEvent.ACTION_POINTER_DOWN)
+        {
+            oriLeft = v.getLeft();
+            oriRight = v.getRight();
+            oriTop = v.getTop();
+            oriBottom = v.getBottom();
+            lastY = (int) event.getRawY();
+            lastX = (int) event.getRawX();
+            dragDirection = TOUCH_TWO;
+            oriDis = distance(event);
+        }
+        switch (action)
+        {
+            case MotionEvent.ACTION_MOVE:
+                int dx = (int) event.getRawX() - lastX;
+                int dy = (int) event.getRawY() - lastY;
+                switch (dragDirection)
+                {
+                    /*
+                    case LEFT: // 左边缘
+                        left(v, dx);
+                        break;
+                    case RIGHT: // 右边缘
+                        right(v, dx);
+                        break;
+                    case BOTTOM: // 下边缘
+                        bottom(v, dy);
+                        break;
+                    case TOP: // 上边缘
+                        top(v, dy);
+                        break;
+                    case CENTER: // 点击中心-->>移动
+                        center(v, dx, dy);
+                        break;
+                    case LEFT_BOTTOM: // 左下
+                        left(v, dx);
+                        bottom(v, dy);
+                        break;
+                    case LEFT_TOP: // 左上
+                        left(v, dx);
+                        top(v, dy);
+                        break;
+                    case RIGHT_BOTTOM: // 右下
+                        right(v, dx);
+                        bottom(v, dy);
+                        break;
+                    case RIGHT_TOP: // 右上
+                        right(v, dx);
+                        top(v, dy);
+                        break;
+                        */
+                    case TOUCH_TWO: //双指操控
+                        float newDist = distance(event);
+                        float scale = newDist / oriDis;
+                        //控制双指缩放的敏感度
+                        int distX = (int) (scale * (oriRight - oriLeft) - (oriRight - oriLeft)) / 50;
+                        int distY = (int) (scale * (oriBottom - oriTop) - (oriBottom - oriTop)) / 50;
+                        System.out.println("two\n");
+                        System.out.println(distX);
+                        System.out.println(distY);
+                        if (newDist > 10f)
+                        {//当双指的距离大于10时，开始相应处理
+
+                        }
+                        break;
+
+                }
+                if (dragDirection != CENTER)
+                {
+                    v.layout(oriLeft, oriTop, oriRight, oriBottom);
+                }
+                lastX = (int) event.getRawX();
+                lastY = (int) event.getRawY();
+                break;
+            case MotionEvent.ACTION_UP:
+            case MotionEvent.ACTION_POINTER_UP:
+                dragDirection = 0;
+                break;
+        }
+        return false;
+    }
+
+        protected int getDirection(View v, int x, int y) {
+            int left = v.getLeft();
+            int right = v.getRight();
+            int bottom = v.getBottom();
+            int top = v.getTop();
+            if (x < touchDistance && y < touchDistance) {
+                return LEFT_TOP;
+            }
+            if (y < touchDistance && right - left - x < touchDistance) {
+                return RIGHT_TOP;
+            }
+            if (x < touchDistance && bottom - top - y < touchDistance) {
+                return LEFT_BOTTOM;
+            }
+            if (right - left - x < touchDistance && bottom - top - y < touchDistance) {
+                return RIGHT_BOTTOM;
+            }
+            if (x < touchDistance) {
+                return LEFT;
+            }
+            if (y < touchDistance) {
+                return TOP;
+            }
+            if (right - left - x < touchDistance) {
+                return RIGHT;
+            }
+            if (bottom - top - y < touchDistance) {
+                return BOTTOM;
+            }
+            return CENTER;
+        }
+
+    private float distance(MotionEvent event) {
+        float x = event.getX(0) - event.getX(1);
+        float y = event.getY(0) - event.getY(1);
+        return (float) Math.sqrt(x * x + y * y);//两点间距离公式
     }
 }
