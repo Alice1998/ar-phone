@@ -30,7 +30,7 @@ import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
 
-public class FullScreenActivity extends AppCompatActivity implements View.OnTouchListener{
+public class FullScreenActivity extends AppCompatActivity{
 
     int timer1 = 0, timer2 = 0, timer3 = 0, timer4 = 0,timer5=0,timer6=0;
     Bitmap bitmap;
@@ -118,7 +118,6 @@ public class FullScreenActivity extends AppCompatActivity implements View.OnTouc
         super.onCreate(savedInstanceState);
         setContentView(R.layout.full_screen);
         pic = (ImageView) findViewById(R.id.image);
-        pic.setOnTouchListener(this);
         // ***
         mode=0;
 
@@ -296,105 +295,87 @@ public class FullScreenActivity extends AppCompatActivity implements View.OnTouc
     }
 
     @Override
-    public boolean onTouch(View v, MotionEvent event)
-    {
+    public boolean onTouchEvent(MotionEvent event) {
         int action = event.getAction() & MotionEvent.ACTION_MASK;
 
-        System.out.println("*** "+event.getAction()+action);
+        //System.out.println("*** "+event.getAction()+action);
         if (action == MotionEvent.ACTION_DOWN)
         {
-            oriLeft = v.getLeft();
-            oriRight = v.getRight();
-            oriTop = v.getTop();
-            oriBottom = v.getBottom();
+            oriLeft = pic.getLeft();
+            oriRight = pic.getRight();
+            oriTop = pic.getTop();
+            oriBottom = pic.getBottom();
             lastY = (int) event.getRawY();
             lastX = (int) event.getRawX();
-            dragDirection = getDirection(v, (int) event.getX(),
+            dragDirection = getDirection(pic, (int) event.getX(),
                     (int) event.getY());
             if(timer5==1)
             {
                 String tosent="enlarge "+lastX+" "+lastY;
                 sendBySocket.picinfo = tosent.getBytes();
                 sendBySocket.play();
-            }
-            if(timer6==1)
-            {
-                String tosent="cursor "+lastX+" "+lastY;
-                sendBySocket.picinfo = tosent.getBytes();
-                sendBySocket.play();
+                System.out.println(tosent);
             }
 
         }
         if (action == MotionEvent.ACTION_POINTER_DOWN)
         {
-            oriLeft = v.getLeft();
-            oriRight = v.getRight();
-            oriTop = v.getTop();
-            oriBottom = v.getBottom();
+            oriLeft = pic.getLeft();
+            oriRight = pic.getRight();
+            oriTop = pic.getTop();
+            oriBottom = pic.getBottom();
             lastY = (int) event.getRawY();
             lastX = (int) event.getRawX();
             dragDirection = TOUCH_TWO;
             oriDis = distance(event);
         }
+
         switch (action)
         {
             case MotionEvent.ACTION_MOVE:
-                int dx = (int) event.getRawX() - lastX;
-                int dy = (int) event.getRawY() - lastY;
                 switch (dragDirection)
                 {
-                    /*
-                    case LEFT: // 左边缘
-                        left(v, dx);
-                        break;
-                    case RIGHT: // 右边缘
-                        right(v, dx);
-                        break;
-                    case BOTTOM: // 下边缘
-                        bottom(v, dy);
-                        break;
-                    case TOP: // 上边缘
-                        top(v, dy);
-                        break;
-                    case CENTER: // 点击中心-->>移动
-                        center(v, dx, dy);
-                        break;
-                    case LEFT_BOTTOM: // 左下
-                        left(v, dx);
-                        bottom(v, dy);
-                        break;
-                    case LEFT_TOP: // 左上
-                        left(v, dx);
-                        top(v, dy);
-                        break;
-                    case RIGHT_BOTTOM: // 右下
-                        right(v, dx);
-                        bottom(v, dy);
-                        break;
-                    case RIGHT_TOP: // 右上
-                        right(v, dx);
-                        top(v, dy);
-                        break;
-                        */
-                    case TOUCH_TWO: //双指操控
-                        float newDist = distance(event);
-                        float scale = newDist / oriDis;
-                        //控制双指缩放的敏感度
-                        int distX = (int) (scale * (oriRight - oriLeft) - (oriRight - oriLeft)) / 50;
-                        int distY = (int) (scale * (oriBottom - oriTop) - (oriBottom - oriTop)) / 50;
-                        System.out.println("two\n");
-                        System.out.println(distX);
-                        System.out.println(distY);
-                        if (newDist > 10f)
-                        {//当双指的距离大于10时，开始相应处理
 
+                    case LEFT: // 左边缘
+                    case RIGHT: // 右边缘
+                    case BOTTOM: // 下边缘
+                    case TOP: // 上边缘
+                    case CENTER: // 点击中心-->>移动
+                    case LEFT_BOTTOM: // 左下
+                    case LEFT_TOP: // 左上
+                    case RIGHT_BOTTOM: // 右下
+                    case RIGHT_TOP: // 右上
+                        if(timer6==1)
+                        {
+                            String sent="cursor "+lastX+" "+lastY;
+                            sendBySocket.picinfo = sent.getBytes();
+                            sendBySocket.play();
+                            System.out.println(sent);
+                        }
+                        break;
+
+                    case TOUCH_TWO: //双指操控
+                        if(timer5==1)
+                        {
+                            float newDist = distance(event);
+                            float scale = newDist / oriDis;
+                            //控制双指缩放的敏感度
+                            //int distX = (int) (scale * (oriRight - oriLeft) - (oriRight - oriLeft)) / 50;
+                            //int distY = (int) (scale * (oriBottom - oriTop) - (oriBottom - oriTop)) / 50;
+                            if (newDist > 10f)
+                            {//当双指的距离大于10时，开始相应处理
+                                System.out.println(scale);
+                                String sent="enlargescale "+scale;
+                                sendBySocket.picinfo = sent.getBytes();
+                                sendBySocket.play();
+                            }
                         }
                         break;
 
                 }
                 if (dragDirection != CENTER)
                 {
-                    v.layout(oriLeft, oriTop, oriRight, oriBottom);
+                    //pic.layout(oriLeft, oriTop, oriRight, oriBottom);
                 }
                 lastX = (int) event.getRawX();
                 lastY = (int) event.getRawY();
@@ -404,7 +385,7 @@ public class FullScreenActivity extends AppCompatActivity implements View.OnTouc
                 dragDirection = 0;
                 break;
         }
-        return false;
+        return super.onTouchEvent(event);
     }
 
         protected int getDirection(View v, int x, int y) {
