@@ -66,6 +66,8 @@ public class FullScreenActivity extends AppCompatActivity{
     private int dragDirection;
     private static final int touchDistance = 80; //触摸边界的有效距离
     private float oriDis = 1f;
+    float singleScale=1;
+    int flagforScale=0;
 
 
     private DialogInterface.OnClickListener click1 = new DialogInterface.OnClickListener() {
@@ -253,6 +255,8 @@ public class FullScreenActivity extends AppCompatActivity{
             @Override
             public void onClick(View v) {
                 timer5 = 1 ^ timer5;
+                singleScale=1;
+                flagforScale=0;
                 if (timer5 == 1) {
                     showMyToast(Toast.makeText(FullScreenActivity.this, "enlarge mode on", Toast.LENGTH_LONG), 500);
                 } else {
@@ -311,10 +315,15 @@ public class FullScreenActivity extends AppCompatActivity{
                     (int) event.getY());
             if(timer5==1)
             {
-                String tosent="enlarge "+lastX+" "+lastY;
-                sendBySocket.picinfo = tosent.getBytes();
-                sendBySocket.play();
-                System.out.println(tosent);
+                if(flagforScale==0)
+                {
+                    flagforScale=1;
+                    String tosent="enlarge "+lastX+" "+lastY;
+                    sendBySocket.picinfo = tosent.getBytes();
+                    sendBySocket.play();
+                    System.out.println(tosent);
+                }
+                singleScale=1;
             }
 
         }
@@ -364,10 +373,8 @@ public class FullScreenActivity extends AppCompatActivity{
                             //int distY = (int) (scale * (oriBottom - oriTop) - (oriBottom - oriTop)) / 50;
                             if (newDist > 10f)
                             {//当双指的距离大于10时，开始相应处理
-                                System.out.println(scale);
-                                String sent="enlargescale "+scale;
-                                sendBySocket.picinfo = sent.getBytes();
-                                sendBySocket.play();
+                                singleScale=scale;
+
                             }
                         }
                         break;
@@ -384,6 +391,16 @@ public class FullScreenActivity extends AppCompatActivity{
             case MotionEvent.ACTION_POINTER_UP:
                 dragDirection = 0;
                 break;
+        }
+        if(action==MotionEvent.ACTION_UP)
+        {
+            if(timer5==1&&singleScale!=1)
+            {
+                System.out.println(singleScale);
+                String sent="enlargescale "+singleScale;
+                sendBySocket.picinfo = sent.getBytes();
+                sendBySocket.play();
+            }
         }
         return super.onTouchEvent(event);
     }
