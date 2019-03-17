@@ -163,18 +163,18 @@ public class FullScreenActivity extends AppCompatActivity{
 
         byte[] pics=baos.toByteArray();
         sendBySocket.picinfo=new byte[35+pics.length];
+        java.util.Arrays.fill(sendBySocket.picinfo, (byte) 0);
         sendBySocket.picinfo[0]=0;
         byte[] names="pic1.png".getBytes();
-        for(int i=0;i<20-names.length;i++)
-            sendBySocket.picinfo[i+1]=0;
-        for(int i=20-names.length;i<20;i++)
-            sendBySocket.picinfo[i+1]=names[i];
+        System.arraycopy(names,0,sendBySocket.picinfo,1,names.length);
+
+
+        byte[] test=new byte[20];
+        System.arraycopy(sendBySocket.picinfo,1,test,0,20);
+        System.out.println(new String(test));
 
         byte[] format="png".getBytes();
-        for(int i=0;i<5-names.length;i++)
-            sendBySocket.picinfo[21+i]=0;
-        for(int i=5-names.length;i<5;i++)
-            sendBySocket.picinfo[i+21]=names[i];
+        System.arraycopy(format,0,sendBySocket.picinfo,21,format.length);
 
         // 获得图片的宽高
         int width = bitmap.getWidth();
