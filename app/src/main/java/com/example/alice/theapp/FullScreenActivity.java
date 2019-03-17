@@ -20,6 +20,7 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import java.io.ByteArrayOutputStream;
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Timer;
@@ -69,12 +70,23 @@ public class FullScreenActivity extends AppCompatActivity{
     float singleScale=1;
     int flagforScale=0;
 
+    public static byte shortToByte(short number,int index) {
+        int temp = number;
+        byte[] b = new byte[2]; // 将最低位保存在最低位
+        b[0] = (byte)(temp & 0xff);
+        temp = temp >> 8; // 向右移8位
+        b[1] = (byte)(temp & 0xff);
+        return b[index];
+    }
 
     private DialogInterface.OnClickListener click1 = new DialogInterface.OnClickListener() {
         @Override
         public void onClick(DialogInterface arg0, int arg1) {
             Toast.makeText(FullScreenActivity.this, "message sent", Toast.LENGTH_SHORT).show();
-            sendBySocket.picinfo = "close".getBytes();
+            //sendBySocket.picinfo = "close".getBytes();
+            sendBySocket.picinfo=new byte[2];
+            sendBySocket.picinfo[0]=5;
+            sendBySocket.picinfo[1]=100;
             sendBySocket.play();
             finish();
         }
@@ -83,7 +95,10 @@ public class FullScreenActivity extends AppCompatActivity{
         @Override
         public void onClick(DialogInterface arg0, int arg1) {
             // keep
-            sendBySocket.picinfo = "keep".getBytes();
+            //sendBySocket.picinfo = "keep".getBytes();
+            sendBySocket.picinfo=new byte[2];
+            sendBySocket.picinfo[0]=6;
+            sendBySocket.picinfo[1]=100;
             sendBySocket.play();
             finish();
         }
@@ -146,14 +161,39 @@ public class FullScreenActivity extends AppCompatActivity{
         else
             sendBySocket=new ClientOnly(ip,Integer.valueOf(port));
 
-        sendBySocket.picinfo = byteMerger("pic 1 ".getBytes(),baos.toByteArray());
-        sendBySocket.play();
-        Toast.makeText(FullScreenActivity.this, "picture sent~", Toast.LENGTH_SHORT).show();
+        byte[] pics=baos.toByteArray();
+        sendBySocket.picinfo=new byte[35+pics.length];
+        sendBySocket.picinfo[0]=0;
+        byte[] names="pic1.png".getBytes();
+        for(int i=0;i<20-names.length;i++)
+            sendBySocket.picinfo[i+1]=0;
+        for(int i=20-names.length;i<20;i++)
+            sendBySocket.picinfo[i+1]=names[i];
 
+        byte[] format="png".getBytes();
+        for(int i=0;i<5-names.length;i++)
+            sendBySocket.picinfo[21+i]=0;
+        for(int i=5-names.length;i<5;i++)
+            sendBySocket.picinfo[i+21]=names[i];
 
         // 获得图片的宽高
         int width = bitmap.getWidth();
         int height = bitmap.getHeight();
+
+        sendBySocket.picinfo[26]=shortToByte((short)width,0);
+        sendBySocket.picinfo[27]=shortToByte((short)width,1);
+        sendBySocket.picinfo[28]=shortToByte((short)height,0);
+        sendBySocket.picinfo[29]=shortToByte((short)height,1);
+
+        byte[] sizes=ByteBuffer.allocate(4).putInt(pics.length).array();
+        for(int i=0;i<4;i++)
+            sendBySocket.picinfo[30+i]=sizes[i];
+        System.arraycopy(pics,0,sendBySocket.picinfo,34,pics.length);
+
+        sendBySocket.picinfo[34+pics.length]=100;
+        sendBySocket.play();
+        Toast.makeText(FullScreenActivity.this, "picture sent~", Toast.LENGTH_SHORT).show();
+
 
         dm2 = getResources().getDisplayMetrics();
         System.out.println("width :" + width);
@@ -187,16 +227,19 @@ public class FullScreenActivity extends AppCompatActivity{
             public void onClick(View v) {
                 //弹出Toast提示按钮被点击了
                 timer1 = 1 ^ timer1;
+                sendBySocket.picinfo=new byte[3];
+                sendBySocket.picinfo[0]=1;
+                sendBySocket.picinfo[2]=100;
                 if (timer1 == 1) {
                     Toast toast = Toast.makeText(FullScreenActivity.this, "Mode 1 on", Toast.LENGTH_LONG);
                     showMyToast(toast, 500);
                     pic.setImageBitmap(newbm1);
-                    sendBySocket.picinfo = "1 on".getBytes();
+                    sendBySocket.picinfo[1]=0;
                     sendBySocket.play();
                 } else {
                     showMyToast(Toast.makeText(FullScreenActivity.this, "Mode 1 off", Toast.LENGTH_LONG), 500);
                     pic.setImageBitmap(bitmap);
-                    sendBySocket.picinfo = "1 off".getBytes();
+                    sendBySocket.picinfo[1]=1;
                     sendBySocket.play();
                 }
             }
@@ -206,13 +249,16 @@ public class FullScreenActivity extends AppCompatActivity{
             @Override
             public void onClick(View v) {
                 timer2 = 1 ^ timer2;
+                sendBySocket.picinfo=new byte[3];
+                sendBySocket.picinfo[0]=1;
+                sendBySocket.picinfo[2]=100;
                 if (timer2 == 1) {
                     showMyToast(Toast.makeText(FullScreenActivity.this, "Mode 2 on", Toast.LENGTH_LONG), 500);
-                    sendBySocket.picinfo = "2 on".getBytes();
+                    sendBySocket.picinfo[1]=2;
                     sendBySocket.play();
                 } else {
                     showMyToast(Toast.makeText(FullScreenActivity.this, "Mode 2 off", Toast.LENGTH_LONG), 500);
-                    sendBySocket.picinfo = "2 off".getBytes();
+                    sendBySocket.picinfo[1]=3;
                     sendBySocket.play();
                 }
 
@@ -223,13 +269,16 @@ public class FullScreenActivity extends AppCompatActivity{
             @Override
             public void onClick(View v) {
                 timer3 = 1 ^ timer3;
+                sendBySocket.picinfo=new byte[3];
+                sendBySocket.picinfo[0]=1;
+                sendBySocket.picinfo[2]=100;
                 if (timer3 == 1) {
                     showMyToast(Toast.makeText(FullScreenActivity.this, "Mode 3 on", Toast.LENGTH_LONG), 500);
-                    sendBySocket.picinfo = "3 on".getBytes();
+                    sendBySocket.picinfo[1]=4;
                     sendBySocket.play();
                 } else {
                     showMyToast(Toast.makeText(FullScreenActivity.this, "Mode 3 off", Toast.LENGTH_LONG), 500);
-                    sendBySocket.picinfo = "3 off".getBytes();
+                    sendBySocket.picinfo[1]=5;
                     sendBySocket.play();
                 }
             }
@@ -239,13 +288,16 @@ public class FullScreenActivity extends AppCompatActivity{
             @Override
             public void onClick(View v) {
                 timer4 = 1 ^ timer4;
+                sendBySocket.picinfo=new byte[3];
+                sendBySocket.picinfo[0]=1;
+                sendBySocket.picinfo[2]=100;
                 if (timer4 == 1) {
                     showMyToast(Toast.makeText(FullScreenActivity.this, "Mode 4 on", Toast.LENGTH_LONG), 500);
-                    sendBySocket.picinfo = "4 on".getBytes();
+                    sendBySocket.picinfo[1]=6;
                     sendBySocket.play();
                 } else {
                     showMyToast(Toast.makeText(FullScreenActivity.this, "Mode 4 off", Toast.LENGTH_LONG), 500);
-                    sendBySocket.picinfo = "4 off".getBytes();
+                    sendBySocket.picinfo[1]=7;
                     sendBySocket.play();
                 }
             }
@@ -319,7 +371,14 @@ public class FullScreenActivity extends AppCompatActivity{
                 {
                     flagforScale=1;
                     String tosent="enlarge "+lastX+" "+lastY;
-                    sendBySocket.picinfo = tosent.getBytes();
+                    //sendBySocket.picinfo = tosent.getBytes();
+                    sendBySocket.picinfo=new byte[6];
+                    sendBySocket.picinfo[0]=2;
+                    sendBySocket.picinfo[1]=shortToByte((short)lastX,0);
+                    sendBySocket.picinfo[2]=shortToByte((short)lastX,1);
+                    sendBySocket.picinfo[3]=shortToByte((short)lastY,0);
+                    sendBySocket.picinfo[4]=shortToByte((short)lastY,1);
+                    sendBySocket.picinfo[5]=100;
                     sendBySocket.play();
                     System.out.println(tosent);
                 }
@@ -358,8 +417,15 @@ public class FullScreenActivity extends AppCompatActivity{
                         {
                             String sent="cursor "+lastX+" "+lastY;
                             sendBySocket.picinfo = sent.getBytes();
+                            sendBySocket.picinfo=new byte[6];
+                            sendBySocket.picinfo[0]=4;
+                            sendBySocket.picinfo[1]= shortToByte((short)lastX,0);
+                            sendBySocket.picinfo[2]= shortToByte((short)lastX,1);
+                            sendBySocket.picinfo[1]= shortToByte((short)lastY,0);
+                            sendBySocket.picinfo[2]= shortToByte((short)lastY,1);
+                            sendBySocket.picinfo[5]=100;
+                            System.out.println(sendBySocket.picinfo);
                             sendBySocket.play();
-                            System.out.println(sent);
                         }
                         break;
 
@@ -398,7 +464,13 @@ public class FullScreenActivity extends AppCompatActivity{
             {
                 System.out.println(singleScale);
                 String sent="enlargescale "+singleScale;
-                sendBySocket.picinfo = sent.getBytes();
+                //sendBySocket.picinfo = sent.getBytes();
+                sendBySocket.picinfo=new byte[10];
+                sendBySocket.picinfo[0]=3;
+                byte []temp=ByteBuffer.allocate(8).putDouble((double)singleScale).array();
+                for(int i=0;i<8;i++)
+                    sendBySocket.picinfo[i+1]=temp[i];
+                sendBySocket.picinfo[9]=100;
                 sendBySocket.play();
             }
         }
