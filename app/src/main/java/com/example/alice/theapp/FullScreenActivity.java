@@ -44,6 +44,7 @@ public class FullScreenActivity extends AppCompatActivity{
 
     ClientOnly sendBySocket;
     int mode;
+    String picName;
 
     private static final int TOP = 0x15;
     private static final int LEFT = 0x16;
@@ -148,6 +149,7 @@ public class FullScreenActivity extends AppCompatActivity{
         Intent intent = getIntent();
         String data = intent.getStringExtra("uri");
         Uri uri = Uri.parse((String) data);
+        picName=data;
 
         bitmap = PhotoUtils.getBitmapFromUri(uri, this);
         pic.setImageBitmap(bitmap);
@@ -165,16 +167,15 @@ public class FullScreenActivity extends AppCompatActivity{
         sendBySocket.picinfo=new byte[35+pics.length];
         java.util.Arrays.fill(sendBySocket.picinfo, (byte) 0);
         sendBySocket.picinfo[0]=0;
-        byte[] names="pic1.png".getBytes();
-        System.arraycopy(names,0,sendBySocket.picinfo,1,names.length);
 
+        System.arraycopy(picName.getBytes(),0,sendBySocket.picinfo,1,picName.getBytes().length);
 
-        byte[] test=new byte[20];
-        System.arraycopy(sendBySocket.picinfo,1,test,0,20);
-        System.out.println(new String(test));
+        String[] aa = picName.split("\\.");
+        byte[] test=aa[aa.length-1].getBytes();
+        System.arraycopy(test,0,sendBySocket.picinfo,21,test.length);
 
-        byte[] format="png".getBytes();
-        System.arraycopy(format,0,sendBySocket.picinfo,21,format.length);
+        System.out.println(picName);
+        System.out.println(aa[aa.length-1]);
 
         // 获得图片的宽高
         int width = bitmap.getWidth();
